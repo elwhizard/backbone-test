@@ -1,4 +1,4 @@
-var col;
+
 (function ($, BB, _) {
 
 	$('#add_contact').tooltip();
@@ -14,8 +14,7 @@ var col;
 			this.input_number = $('#inputs input[name=number]');
 			this.input_username = $('#inputs input[name=username]');
 			this.contacts_list = $('.table tbody');
-			col = this.collection;
-
+			
 			this.listenTo(this.collection, 'add', this.addOne);
 			this.listenTo(this.collection, 'reset', this.addAll);
 			this.listenTo(this.collection, 'all', this.render);
@@ -24,14 +23,13 @@ var col;
 		},
 		render: function () {
 
-			
 		}, 
 	    addAll: function() {
 	      this.collection.each(this.addOne, this);
 	    },
 	    addOne: function(person) {
 
-			person.set("position", this.collection.indexOf(person) + 1);
+			person.set("position", this.collection.lastIndexOf(person) + 1);
 
 			var view = new PersonView({model: person});
 
@@ -78,7 +76,8 @@ var col;
 		}, 
 		validate: function (attrs) {
 			
-		}
+		}, 
+		comparator: 'position'
 	});
 
 	var PersonCollection = Backbone.Collection.extend({
@@ -99,6 +98,13 @@ var col;
 				}
 			}
 			return true;
+		},
+		updatePosition: function () {
+			if (!this.length) return;
+			var i = 0;
+			_.each(this.models, function (model) {
+				model.set({position: i += 1})
+			});
 		}
 	});
 
@@ -117,8 +123,7 @@ var col;
       		this.listenTo(this.model, 'destroy', this.remove);      		
 		},
 		render: function() {
-			var compiledTemplate = _.template(this.template);
-			
+			var compiledTemplate = _.template(this.template);			
 			
 			this.$el.addClass('contact')
 			this.$el.html(compiledTemplate(this.model.toJSON()))
@@ -148,6 +153,7 @@ var col;
 		},
 		deleteContact: function () {
 			this.model.destroy();
+			contactApp.collection.updatePosition();
 		}
 	});
 
